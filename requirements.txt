@@ -1,0 +1,7 @@
+flask==3.0.0
+flask-cors==4.0.0
+groq==0.28.0
+scikit-learn==1.4.0
+numpy==1.26.4
+gunicorn==21.2.0
+PyPDF2==3.0.1

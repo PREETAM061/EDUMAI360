@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+edumate360.db
+.config/
+sample_data/
+*.ipynb_checkpoints/

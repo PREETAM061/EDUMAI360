@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>EduMate 360</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <nav class="sidebar">
+    <div class="logo">&#127891;</div>
+    <button class="nav-btn active" data-screen="home" title="Home">&#127968;</button>
+    <button class="nav-btn" data-screen="quiz" title="Quiz">&#9889;</button>
+    <button class="nav-btn" data-screen="dashboard" title="Dashboard">&#128202;</button>
+    <button class="nav-btn" data-screen="upload" title="Upload">&#128196;</button>
+    <button class="nav-btn" data-screen="leaderboard" title="Leaderboard">&#127942;</button>
+    <button class="nav-btn" data-screen="review" title="Review">&#128337;</button>
+    <div class="level-pill"><span class="lv">LV</span><span id="lv-num">1</span></div>
+  </nav>
+  <main class="main">
+
+    <!-- HOME -->
+    <section id="screen-home" class="screen active">
+      <div class="hero">
+        <div class="hero-text">
+          <div class="tag indigo">AI-Powered Adaptive Learning v5.3</div>
+          <h1>Ask anything.<br/><span class="grad">Learn everything.</span></h1>
+          <p class="sub">Type any topic. AI generates questions. ML adapts difficulty in real time.</p>
+        </div>
+        <div class="xp-ring">
+          <div class="xp-num" id="xp-num">0</div>
+          <div class="xp-lbl">XP</div>
+          <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar"></div></div>
+          <div class="xp-to" id="xp-to">200 to Level 2</div>
+        </div>
+      </div>
+      <div id="due-alert" class="due-alert hidden"></div>
+      <div class="gen-card">
+        <h2 class="gen-title">&#128269; What do you want to study?</h2>
+        <div class="gen-row">
+          <input id="topic-input" class="topic-input" type="text"
+            placeholder="e.g. French Revolution, Machine Learning, Photosynthesis..."
+            autocomplete="off"/>
+        </div>
+        <div class="gen-row gen-controls">
+          <div class="control-group">
+            <label>Difficulty</label>
+            <select id="diff-select" class="sel">
+              <option value="beginner">Beginner</option>
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+              <option value="expert">Expert</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Questions</label>
+            <select id="numq-select" class="sel">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Type</label>
+            <select id="type-select" class="sel">
+              <option value="mcq">MCQ</option>
+              <option value="truefalse">True/False</option>
+              <option value="short">Short Answer</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </div>
+          <button id="generate-btn" class="gen-btn" onclick="generateQuestions()">&#10024; Generate</button>
+        </div>
+        <div id="gen-error" class="gen-error hidden"></div>
+      </div>
+      <div class="stats-row">
+        <div class="sc"><span class="si">&#128293;</span><span class="sv" id="hs-streak">0</span><span class="sl">Streak</span></div>
+        <div class="sc"><span class="si">&#127919;</span><span class="sv" id="hs-acc">0%</span><span class="sl">Accuracy</span></div>
+        <div class="sc"><span class="si">&#11088;</span><span class="sv" id="hs-score">0</span><span class="sl">Score</span></div>
+        <div class="sc"><span class="si">&#128218;</span><span class="sv" id="hs-topics">0</span><span class="sl">Topics</span></div>
+        <div class="sc"><span class="si">&#128197;</span><span class="sv" id="hs-days">0</span><span class="sl">Day Streak</span></div>
+      </div>
+      <div id="home-badges" class="badge-row hidden">
+        <h3 class="section-label">&#127885; Your Badges</h3>
+        <div id="home-badge-list" class="badge-list"></div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-top">
+        <div class="quiz-meta">
+          <div class="q-topic-badge" id="q-topic-badge">Topic</div>
+          <div class="q-diff-badge diff-medium" id="q-diff-badge">Medium</div>
+          <div class="q-num" id="q-num">Q 1/5</div>
+        </div>
+        <div class="quiz-actions">
+          <button class="abtn" id="voice-btn" onclick="toggleVoice()">&#128266; Voice</button>
+          <button class="abtn" id="cam-btn" onclick="toggleCam()">&#128247; Cam</button>
+          <button class="abtn" onclick="showScreen('home')">&#8592; Back</button>
+        </div>
+      </div>
+      <div class="qprog-wrap"><div class="qprog-fill" id="qprog"></div></div>
+      <div class="live-strip">
+        <span>&#11088; <b id="ls-score">0</b></span>
+        <span>&#128293; <b id="ls-streak">0</b></span>
+        <span>&#127919; <b id="ls-acc">0%</b></span>
+        <span class="ml-tag" id="ml-tag">ML: medium</span>
+        <span id="timer-badge" class="timer-badge">&#9201; 0s</span>
+        <span id="cog-badge" class="cog-badge hidden"></span>
+      </div>
+      <!-- CAMERA / EMOTION PANEL -->
+      <div id="cam-panel" class="cam-panel hidden">
+        <div class="cam-left">
+          <div class="cam-video-wrap">
+            <video id="webcam" autoplay muted playsinline width="160" height="120"></video>
+            <canvas id="face-canvas" width="160" height="120" class="face-canvas"></canvas>
+            <div id="face-status" class="face-status">Starting...</div>
+          </div>
+        </div>
+        <div class="cam-right">
+          <div class="cog-state-label">COGNITIVE STATE</div>
+          <div id="emo-state" class="emo-state">&#127919; Focused</div>
+          <div id="emo-sub" class="emo-sub">Camera loading...</div>
+          <div id="emo-bars" class="emo-bars"></div>
+          <div class="emo-model-tag">MediaPipe &#8226; FaceLandmarker &#8226; 478 Landmarks</div>
+        </div>
+      </div>
+      <div class="q-box" id="q-box">
+        <div class="q-concept" id="q-concept"></div>
+        <div class="q-text" id="q-text">Loading...</div>
+      </div>
+      <div id="options-wrap" class="options-grid"></div>
+      <div id="short-wrap" class="short-wrap hidden">
+        <textarea id="short-input" class="short-input" placeholder="Type your answer here..." rows="3"></textarea>
+        <button class="submit-short-btn" onclick="submitShort()">Submit &#8594;</button>
+      </div>
+      <div id="feedback-wrap" class="feedback-wrap hidden">
+        <div id="fb-msg" class="fb-msg"></div>
+        <div id="fb-exp" class="fb-exp"></div>
+        <div id="fb-followup" class="fb-followup hidden">
+          <span class="fq-label">&#128172; Follow-up:</span>
+          <span id="fq-text"></span>
+        </div>
+        <div id="ml-explain" class="ml-explain"></div>
+        <button class="next-btn" onclick="nextQuestion()">Next &#8594;</button>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="screen-dashboard" class="screen">
+      <div class="page-head">
+        <div class="tag green">Analytics</div>
+        <h1>Performance Dashboard</h1>
+        <p class="sub">Your progress, charts and topic mastery</p>
+      </div>
+      <div id="big-stats" class="big-stats"></div>
+      <div class="lp-card">
+        <div class="lp-top"><span id="lp-lbl">Level 1</span><span id="lp-xp" class="lp-xp">200 XP to Level 2</span></div>
+        <div class="lp-bar-wrap"><div id="lp-bar" class="lp-bar"></div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card half">
+          <h3 class="section-label">&#128200; Accuracy Over Time</h3>
+          <div class="chart-wrap"><canvas id="progress-chart"></canvas></div>
+        </div>
+        <div class="chart-card half">
+          <h3 class="section-label">&#127914; Correct vs Wrong</h3>
+          <div class="chart-wrap"><canvas id="pie-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3 class="section-label">&#127891; Topic Mastery %</h3>
+        <div class="chart-wrap tall"><canvas id="mastery-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="section-label">&#9200; Topic Stats Table</h3>
+        <div id="topic-table"></div>
+      </div>
+      <div class="cal-card">
+        <h3 class="section-label">&#128197; Study Streak — Last 90 Days</h3>
+        <div id="streak-calendar" class="streak-calendar"></div>
+      </div>
+      <h3 class="section-label">Topics Studied</h3>
+      <div id="topics-list" class="topics-list"></div>
+      <h3 class="section-label">Weak Topics (below 50% accuracy)</h3>
+      <div id="weak-list" class="weak-list"></div>
+      <div class="cw-row">
+        <div class="cw green"><div id="d-correct" class="cw-v">0</div><div class="cw-l">&#9989; Correct</div></div>
+        <div class="cw red"><div id="d-wrong" class="cw-v">0</div><div class="cw-l">&#10060; Wrong</div></div>
+        <div class="cw purple"><div id="d-total" class="cw-v">0</div><div class="cw-l">&#128221; Total</div></div>
+      </div>
+      <h3 class="section-label">Badges Earned</h3>
+      <div id="d-badges" class="badge-list"><span class="nb">Complete quizzes to earn badges!</span></div>
+      <div class="export-row">
+        <button class="export-btn" onclick="exportReport()">&#128190; Export Report</button>
+        <button class="export-btn secondary" onclick="submitToLeaderboard()">&#127942; Submit to Leaderboard</button>
+      </div>
+    </section>
+
+    <!-- UPLOAD -->
+    <section id="screen-upload" class="screen">
+      <div class="page-head">
+        <div class="tag teal">Study Material</div>
+        <h1>Learn From Your Material</h1>
+        <p class="sub">Upload a PDF or paste text — AI generates questions from your content only.</p>
+      </div>
+      <div class="upload-tabs">
+        <button class="tab-btn active" onclick="switchTab('text-tab','pdf-tab',this)">&#128203; Paste Text</button>
+        <button class="tab-btn" onclick="switchTab('pdf-tab','text-tab',this)">&#128196; Upload PDF</button>
+      </div>
+      <div id="text-tab" class="upload-card">
+        <textarea id="notes-input" class="notes-input" placeholder="Paste your notes, lecture content or textbook text here..."></textarea>
+        <div class="upload-controls">
+          <div class="control-group"><label>Difficulty</label>
+            <select id="upload-diff" class="sel">
+              <option value="easy">Easy</option><option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="control-group"><label>Questions</label>
+            <select id="upload-numq" class="sel">
+              <option value="3">3</option><option value="5" selected>5</option><option value="10">10</option>
+            </select>
+          </div>
+          <button class="gen-btn" onclick="generateFromNotes()">&#9889; Generate</button>
+        </div>
+        <div id="upload-error" class="gen-error hidden"></div>
+      </div>
+      <div id="pdf-tab" class="upload-card hidden">
+        <div class="pdf-drop" id="pdf-drop" onclick="document.getElementById('pdf-file').click()">
+          <div class="pdf-icon">&#128196;</div>
+          <div class="pdf-label">Click to upload PDF</div>
+          <div class="pdf-sub">Any PDF — textbooks, notes, research papers</div>
+          <div id="pdf-name" class="pdf-name"></div>
+        </div>
+        <input type="file" id="pdf-file" accept=".pdf" style="display:none" onchange="handlePDFSelect(this)"/>
+        <div class="upload-controls" style="margin-top:16px">
+          <div class="control-group"><label>Difficulty</label>
+            <select id="pdf-diff" class="sel">
+              <option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="control-group"><label>Questions</label>
+            <select id="pdf-numq" class="sel">
+              <option value="3">3</option><option value="5" selected>5</option><option value="10">10</option>
+            </select>
+          </div>
+          <button class="gen-btn" id="pdf-btn" onclick="generateFromPDF()" disabled>&#128196; Generate</button>
+        </div>
+        <div id="pdf-error" class="gen-error hidden"></div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section id="screen-leaderboard" class="screen">
+      <div class="page-head">
+        <div class="tag gold">Rankings</div>
+        <h1>&#127942; Leaderboard</h1>
+        <p class="sub">Top students globally.</p>
+      </div>
+      <div id="lb-table" class="lb-table"><div class="lb-loading">Loading...</div></div>
+      <div class="lb-submit-card">
+        <h3>Submit Your Score</h3>
+        <div class="lb-row">
+          <input id="lb-name" class="topic-input" placeholder="Enter your name..." style="flex:1"/>
+          <button class="gen-btn" onclick="submitToLeaderboard()">&#127942; Submit</button>
+        </div>
+        <div id="lb-error" class="gen-error hidden"></div>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section id="screen-review" class="screen">
+      <div class="page-head">
+        <div class="tag orange">Spaced Repetition</div>
+        <h1>&#128337; Topics for Review</h1>
+        <p class="sub">SM-2 algorithm schedules review at the optimal time for maximum retention.</p>
+      </div>
+      <div id="review-list" class="review-list"></div>
+      <div id="review-empty" class="review-empty hidden">
+        <div class="re-icon">&#127881;</div>
+        <div class="re-msg">No topics yet!</div>
+        <div class="re-sub">Complete a quiz first, then come back here to review.</div>
+        <button class="gen-btn" style="margin-top:16px" onclick="showScreen('home')">Start Studying &#8594;</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<div id="loading" class="loading-overlay hidden">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <div id="loading-msg" class="loading-msg">Generating questions with AI...</div>
+  </div>
+</div>
+
+<script>
+  // Load MediaPipe Tasks Vision for face detection
+  (function(){
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js';
+    s.crossOrigin = 'anonymous';
+    s.onload = function(){ window._mpLoaded = true; console.log('MediaPipe loaded'); };
+    s.onerror = function(){ console.warn('MediaPipe CDN failed'); };
+    document.head.appendChild(s);
+  })();
+</script>
+<script src="app.js"></script>
+</body>
+</html>
